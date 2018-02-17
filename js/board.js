@@ -1,23 +1,33 @@
 var board = {
 		name: 'Kanban Board',
-		addColumn: function(column) {
+		createColumn: function(column) {
 			this.$element.append(column.$element);
 			initSortable();
 		},
 
-		$element: $('.column-container')
+		$element: $('#board .column-container')
 };
 
-$('.create-column').click(function(){
-	var name = prompt('Enter a column name', 'Column\'\s name');
-	if(name){
-		var column = new Column(name); // tworzymy nową instancję klasy Column
-		board.addColumn(column);
-	}else if(name == "") {
+$('.create-column')
+.click(function(){
+	var columnName = prompt('Enter a column name', 'Column\'\s name');
+	if(columnName == ""){columnName = columnName + "Untitled"}
+	$.ajax({
 		
-		var column = new Column('Untitled'); 
-		board.addColumn(column); //modyfikujemy właściwość obiektu board - dodajemy utworzoną wczesniej kolumnę do elementu o klasie .column-container
-	}
+	url: baseUrl + '/column',
+	method: 'POST',
+	data: {
+		name: columnName
+	},
+	success: function(response){
+		if(columnName && columnName !== null){
+			var column = new Column(response.id, columnName); // tworzymy nową instancję klasy Column
+			board.createColumn(column);
+			}
+		}
+		
+	});
+	
 });
 
 function initSortable() {

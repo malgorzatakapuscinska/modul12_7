@@ -1,14 +1,12 @@
-//klasa Column
-
-function Column(name) {
+function Column(id, name) {
 	var self = this;
 	
-	this.id = randomString();
+	this.id = id;
 	this.name = name;
-	this.$element = createColumn();
+	this.$element = createColumn(); //przechowuje utworzoną kolumnę
 
 
-	function createColumn (){
+	function createColumn(){
 		
 	//tworzymy poszczególne elementy kolumny:
 		
@@ -27,18 +25,34 @@ function Column(name) {
 	
 	$columnAddCard.click(function(event){
 		
-		var cardName = prompt('Enter the name of the card', 'Card\'\s name');
-		if(cardName){
-		self.addCard(new Card(cardName));
-		}else if(cardName == ""){
-			console.log(cardName);
-			self.addCard(new Card('Umtitled'));}
+		var cardName = prompt('Enter the name of the card', 'no name');
+		event.preventDefault();
+		if(cardName == "") {cardName = cardName + "Untitled";}
+		console.log("The card name is " + cardName);
+			
+		$.ajax({
+			url: baseUrl + '/card',
+			method: 'POST',
+			data: {
+				name: cardName,
+				bootcamp_kanban_column_id: self.id
+			},
+			success: function(response){
+				if(cardName){
+					var card = new Card(response.id, cardName);	
+					self.addCard(card);
+				}
+			}
+		
+		});
+	
+	
 	});
 	$columnDeleteButton.append($columnDeleteSymbol);
 	$column.append($columnTitle).append($columnDeleteButton).append($columnAddCard).append($columnCardList);
 	return $column;
+	console.log($column);
 }
-
 }
 
 Column.prototype = {
@@ -46,6 +60,14 @@ Column.prototype = {
 		this.$element.children('ul').append(card.$element);
 	},
 	removeColumn: function() {
-		this.$element.remove();
+		var self = this;
+		$.ajax({
+		url: baseUrl + '/column/' + self.id,
+		method: 'DELETE',
+		success: function(response){
+			self.$element.remove();
+		}	
+		});
+		
 	}
 };
